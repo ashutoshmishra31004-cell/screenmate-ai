@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScreenMate AI Toolbox</title>
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        background-color: #0b1120 !important;
+        color: #f1f5f9 !important;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        font-size: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+
+      /* TOP HEADER BAR */
+      .sm-header {
+        height: 44px;
+        min-height: 44px;
+        padding: 0 12px;
+        background-color: #0f172a;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .sm-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sm-logo {
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #6366f1, #06b6d4);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #ffffff;
+        font-size: 11px;
+      }
+      .sm-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.01em;
+      }
+      .sm-status-badge {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .sm-status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #10b981;
+      }
+
+      /* SETTINGS PANEL */
+      .sm-settings-panel {
+        background: #0f172a;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+      .sm-settings-input {
+        flex: 1;
+        background: #1e293b;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+        padding: 6px 8px;
+        color: #fff;
+        font-size: 11px;
+        outline: none;
+      }
+      .sm-settings-btn {
+        background: #4f46e5;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        font-weight: bold;
+        padding: 0 10px;
+        cursor: pointer;
+        font-size: 11px;
+      }
+
+      /* TARGET TAB CONTEXT CARD */
+      .sm-target-card {
+        margin: 8px 10px 4px 10px;
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .sm-target-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .sm-target-label {
+        font-size: 9px;
+        font-weight: 800;
+        color: #06b6d4;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .sm-badge-ready {
+        background: rgba(6, 182, 212, 0.15);
+        color: #06b6d4;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .sm-target-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sm-target-thumb-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sm-thumb-img {
+        width: 80px;
+        height: 46px;
+        border-radius: 6px;
+        background: #000000;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        object-fit: cover;
+      }
+      .sm-thumb-placeholder {
+        width: 80px;
+        height: 46px;
+        border-radius: 6px;
+        background: #0f172a;
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        color: #64748b;
+      }
+      .sm-target-meta {
+        font-size: 10px;
+        color: #94a3b8;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      /* CHAT MESSAGES SCROLL AREA */
+      .sm-chat-area {
+        flex: 1;
+        padding: 8px 10px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .sm-msg-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .sm-msg-author {
+        font-size: 9px;
+        font-weight: 700;
+        color: #64748b;
+      }
+      .sm-msg-bubble {
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 9px 11px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #e2e8f0;
+        white-space: pre-line;
+      }
+      .sm-user .sm-msg-bubble {
+        background: rgba(99, 102, 241, 0.25);
+        border-color: rgba(99, 102, 241, 0.4);
+        color: #e0e7ff;
+        align-self: flex-end;
+      }
+
+      /* STRUCTURED GUIDANCE CARD */
+      .sm-guidance-card {
+        margin-top: 6px;
+        background: #0f172a;
+        border: 1px solid rgba(6, 182, 212, 0.3);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 10px;
+      }
+      .sm-guidance-sec {
+        margin-bottom: 4px;
+      }
+      .sm-guidance-head {
+        font-size: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .g-cyan { color: #06b6d4; }
+      .g-emerald { color: #10b981; }
+      .g-indigo { color: #a5b4fc; }
+
+      /* BOTTOM CONTROL PANEL */
+      .sm-bottom-panel {
+        padding: 8px 10px;
+        background: #0f172a;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .sm-btn-help {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, #6366f1, #06b6d4);
+        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        transition: opacity 0.15s;
+        text-align: center;
+      }
+      .sm-btn-help:hover {
+        opacity: 0.92;
+      }
+
+      .sm-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 5px;
+      }
+      .sm-btn-act {
+        padding: 7px 4px;
+        border-radius: 8px;
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e2e8f0;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        text-align: center;
+      }
+      .sm-btn-act:hover {
+        background: #334155;
+      }
+      .c-cyan { color: #06b6d4 !important; }
+      .c-emerald { color: #10b981 !important; }
+      .c-indigo { color: #a5b4fc !important; }
+
+      .sm-privacy-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #64748b;
+      }
+      .sm-btn-stop {
+        background: rgba(244, 63, 94, 0.15);
+        color: #f43f5e !important;
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        padding: 3px 6px;
+        border-radius: 5px;
+        font-size: 9px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .sm-input-row {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .sm-chat-input {
+        flex: 1;
+        background: #1e293b !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+        color: #ffffff !important;
+        font-size: 11px !important;
+        outline: none !important;
+        font-family: inherit;
+      }
+      .sm-chat-input:focus {
+        border-color: #06b6d4 !important;
+      }
+      .sm-btn-mic {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #1e293b;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .sm-btn-send {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #4f46e5;
+        color: #ffffff !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .sm-btn-send:hover {
+        background: #4338ca;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP HEADER -->
+    <header class="sm-header">
+      <div class="sm-brand">
+        <div class="sm-logo">SM</div>
+        <div class="sm-title">ScreenMate AI</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <div class="sm-status-badge">
+          <span class="sm-status-dot"></span>
+          <span id="statusText">24/7 Cloud Active</span>
+        </div>
+        <button id="settingsToggleBtn" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:13px; padding:2px;" title="API Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- SETTINGS PANEL (Hidden by default) -->
+    <div id="settingsPanel" class="sm-settings-panel" style="display: none;">
+      <div style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">⚡ Groq API Key (24/7 Cloud)</div>
+      <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+        <input id="apiKeyInput" type="password" placeholder="gsk_..." class="sm-settings-input" />
+        <button id="saveApiKeyBtn" class="sm-settings-btn">Save</button>
+      </div>
+      <div style="font-size: 9px; color: #94a3b8;">
+        <span>Stored securely in your private Chrome storage (never pushed to GitHub).</span>
+      </div>
+    </div>
+
+    <!-- TARGET TAB CONTEXT CARD -->
+    <div class="sm-target-card">
+      <div class="sm-target-header">
+        <span class="sm-target-label">TARGET TAB</span>
+        <span class="sm-badge-ready">Context Ready</span>
+      </div>
+      <div class="sm-target-title" id="targetTabTitle">Detecting target tab...</div>
+
+      <div class="sm-target-thumb-row">
+        <img id="targetThumbImg" class="sm-thumb-img" style="display:none;" alt="Target Screenshot Preview" />
+        <div id="targetThumbPlaceholder" class="sm-thumb-placeholder">No Frame</div>
+        <div class="sm-target-meta">
+          <span style="color:#f1f5f9; font-weight:700;">Target Tab Isolated</span>
+          <span>Side panel excluded from capture</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT MESSAGES SCROLL AREA -->
+    <main id="chatBox" class="sm-chat-area">
+      <div class="sm-msg-group">
+        <div class="sm-msg-author">ScreenMate AI</div>
+        <div class="sm-msg-bubble">
+          Hi! I'm your 24/7 visual copilot. Ask me anything about the current screen or click <strong>HELP</strong> for instant guidance.
+        </div>
+      </div>
+    </main>
+
+    <!-- BOTTOM CONTROL PANEL -->
+    <footer class="sm-bottom-panel">
+      <button id="helpBtn" class="sm-btn-help">
+        <span>✨ HELP — Analyze Current Screen</span>
+      </button>
+
+      <div class="sm-actions-grid">
+        <button id="askBtn" class="sm-btn-act c-cyan">💬 Ask</button>
+        <button id="voiceBtn" class="sm-btn-act c-emerald">🎤 Voice</button>
+        <button id="explainBtn" class="sm-btn-act c-indigo">⚡ Explain</button>
+      </div>
+
+      <div class="sm-privacy-row">
+        <span>Target Tab Only • Direct 24/7 Cloud AI</span>
+        <button id="stopBtn" class="sm-btn-stop">🔒 STOP EVERYTHING</button>
+      </div>
+
+      <form id="chatForm" class="sm-input-row">
+        <input id="userInput" type="text" class="sm-chat-input" placeholder="Ask what to click, errors, next steps..." />
+        <button type="button" id="micBtn" class="sm-btn-mic" title="Voice Mic">🎤</button>
+        <button type="submit" class="sm-btn-send" title="Send">➤</button>
+      </form>
+    </footer>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

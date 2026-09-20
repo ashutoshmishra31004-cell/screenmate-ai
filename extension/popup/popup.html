@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ScreenMate AI</title>
+    <style>
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 16px;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background-color: #090d16;
+        color: #f3f4f6;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+      }
+      .title {
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .subtitle {
+        font-size: 11px;
+        color: #06b6d4;
+      }
+      .btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        margin-bottom: 8px;
+        transition: opacity 0.2s;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        color: white;
+      }
+      .btn-secondary {
+        background: #1b243a;
+        color: #d1d5db;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .btn:hover {
+        opacity: 0.9;
+      }
+      .status-box {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">SM</div>
+      <div>
+        <div class="title">ScreenMate AI</div>
+        <div class="subtitle">Visual Screen Copilot</div>
+      </div>
+    </div>
+
+    <button id="openAppBtn" class="btn btn-primary">Open Web Copilot</button>
+    <button id="captureTabBtn" class="btn btn-secondary">Analyze Current Tab</button>
+
+    <div class="status-box">
+      <div>Active Tab: <span id="tabTitle" style="color:#e5e7eb;">Detecting...</span></div>
+      <div style="margin-top:4px;">Status: <span style="color:#10b981; font-weight:bold;">Ready</span></div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
