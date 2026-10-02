@@ -30,11 +30,18 @@ You are ScreenMate AI, a real-time visual computer-use copilot. Your mission is 
 Answer directly, clearly, and concisely based on the user's active screen context.
 `;
 
+const CANDIDATE_MODELS = [
+  process.env.OPENAI_MODEL || 'qwen/qwen3.8-27b',
+  'qwen/qwen3.8-27b',
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+];
+
 export class OpenAIProvider implements AIProvider {
   private getClient(): { client: OpenAI; model: string } | null {
     const apiKey = (process.env.OPENAI_API_KEY || '').trim();
     const baseURL = (process.env.OPENAI_BASE_URL || 'https://api.groq.com/openai/v1').trim();
-    const model = (process.env.OPENAI_MODEL || 'qwen/qwen3.6-27b').trim();
+    const model = (process.env.OPENAI_MODEL || 'qwen/qwen3.8-27b').trim();
 
     if (apiKey && apiKey.length > 0 && !apiKey.includes('your_openai_api_key')) {
       return {
@@ -50,7 +57,7 @@ export class OpenAIProvider implements AIProvider {
   }
 
   public getModel(): string {
-    return (process.env.OPENAI_MODEL || 'qwen/qwen3.6-27b').trim();
+    return (process.env.OPENAI_MODEL || 'qwen/qwen3.8-27b').trim();
   }
 
   public async analyzeScreen(
@@ -66,37 +73,42 @@ export class OpenAIProvider implements AIProvider {
       return this.generateFallbackAnalysis(userQuestion, parsed);
     }
 
-    try {
-      const promptText = `
+    const promptText = `
 User Question: ${userQuestion === 'Help' ? 'What should I do on this active screen?' : userQuestion}
 Active Target Screen Context: ${textContext || 'Active Target Workspace Window'}
-      `.trim();
+    `.trim();
 
-      const response = await instance.client.chat.completions.create({
-        model: instance.model,
-        messages: [
-          { role: 'system', content: SYSTEM_VISION_PROMPT },
-          { role: 'user', content: promptText },
-        ],
-        max_tokens: 800,
-        temperature: 0.2,
-      });
+    // Iterate through candidate models so if Groq deprecates one, it automatically uses the next active model
+    const modelsToTry = Array.from(new Set([instance.model, ...CANDIDATE_MODELS]));
 
-      const rawContent = response.choices[0]?.message?.content || '';
-      // Strip reasoning tags completely
-      const cleanContent = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await instance.client.chat.completions.create({
+          model: modelName,
+          messages: [
+            { role: 'system', content: SYSTEM_VISION_PROMPT },
+            { role: 'user', content: promptText },
+          ],
+          max_tokens: 800,
+          temperature: 0.2,
+        });
 
-      if (cleanContent) {
-        console.log('Groq API Live Response Cleaned:', cleanContent.substring(0, 100));
-        const structured = this.parseStructuredGuidance(cleanContent);
-        return {
-          analysis: cleanContent,
-          structuredGuidance: structured,
-          timestamp: Date.now(),
-        };
+        const rawContent = response.choices[0]?.message?.content || '';
+        const cleanContent = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+        if (cleanContent) {
+          console.log(`Groq API Live Response Cleaned [${modelName}]:`, cleanContent.substring(0, 100));
+          const structured = this.parseStructuredGuidance(cleanContent);
+          return {
+            analysis: cleanContent,
+            structuredGuidance: structured,
+            timestamp: Date.now(),
+          };
+        }
+      } catch (err: any) {
+        console.error(`Groq AI Provider error for model ${modelName}:`, err.message || err);
+        // Continue loop to try next candidate model
       }
-    } catch (err: any) {
-      console.error('Groq AI Provider Call Error:', err);
     }
 
     return this.generateFallbackAnalysis(userQuestion, parsed);
@@ -120,22 +132,28 @@ Active Target Screen Context: ${textContext || 'Active Target Workspace Window'}
       return { reply: 'ScreenMate AI Assistant is ready to guide you.' };
     }
 
-    try {
-      const response = await instance.client.chat.completions.create({
-        model: instance.model,
-        messages: [
-          { role: 'system', content: 'You are ScreenMate AI, a visual computer-use copilot. Answer concisely.' },
-          ...messages,
-        ],
-        max_tokens: 600,
-      });
+    const modelsToTry = Array.from(new Set([instance.model, ...CANDIDATE_MODELS]));
 
-      const rawReply = response.choices[0]?.message?.content || 'No response generated.';
-      const cleanReply = rawReply.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      return { reply: cleanReply };
-    } catch (err: any) {
-      return { reply: `Backend service error: ${err.message}` };
+    for (const modelName of modelsToTry) {
+      try {
+        const response = await instance.client.chat.completions.create({
+          model: modelName,
+          messages: [
+            { role: 'system', content: 'You are ScreenMate AI, a visual computer-use copilot. Answer concisely.' },
+            ...messages,
+          ],
+          max_tokens: 600,
+        });
+
+        const rawReply = response.choices[0]?.message?.content || 'No response generated.';
+        const cleanReply = rawReply.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        return { reply: cleanReply };
+      } catch (err: any) {
+        console.error(`Chat error with model ${modelName}:`, err.message || err);
+      }
     }
+
+    return { reply: 'ScreenMate AI service temporarily unavailable. Please verify API key.' };
   }
 
   private parseStructuredGuidance(rawText: string): StructuredGuidance | undefined {
@@ -162,7 +180,6 @@ Active Target Screen Context: ${textContext || 'Active Target Workspace Window'}
   }
 
   private generateFallbackAnalysis(userQuestion: string, parsedImage: ReturnType<typeof parseAndValidateBase64Image>): VisionAnalysisResult {
-    const q = userQuestion.toLowerCase();
     let currentScreen = 'Active Desktop Workspace / Browser Window';
     let nextSteps = [
       'Look at the active window highlighted in your live screen preview.',
